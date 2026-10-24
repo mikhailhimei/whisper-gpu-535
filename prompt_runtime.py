@@ -22,6 +22,11 @@ class PromptStore:
 
     @staticmethod
     def validate(payload):
+        if isinstance(payload, dict) and isinstance(payload.get("initial_prompt"), list):
+            phrases = payload["initial_prompt"]
+            if not all(isinstance(phrase, str) for phrase in phrases):
+                raise ValueError("initial_prompt must contain strings")
+            payload = {"initial_prompt": ";".join(phrases)}
         if not isinstance(payload, dict) or not isinstance(payload.get("initial_prompt"), str):
             raise ValueError("initial_prompt must be a string")
         value = payload["initial_prompt"]
@@ -101,7 +106,8 @@ def make_server(address, token, store):
             except OSError:
                 self.respond(500, {"error": "storage_failed"})
                 return
-            self.respond(200, {"initial_prompt": prompt, "applied": True})
+            result = payload["initial_prompt"] if isinstance(payload["initial_prompt"], list) else prompt
+            self.respond(200, {"initial_prompt": result, "applied": True})
 
     return ThreadingHTTPServer(address, Handler)
 

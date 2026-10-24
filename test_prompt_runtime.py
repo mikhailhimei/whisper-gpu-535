@@ -48,6 +48,12 @@ class PromptTests(unittest.TestCase):
         self.assertEqual(self.call()['initial_prompt'], loader.transcribe())
         self.assertEqual(PromptStore(self.path, 'fallback').get(), loader.transcribe())
 
+    def test_phrase_array_is_applied_as_model_text_and_persisted(self):
+        result = self.call({'initial_prompt': ['Коты', 'Пылесос']})
+        self.assertEqual(result['initial_prompt'], ['Коты', 'Пылесос'])
+        self.assertEqual(self.store.get(), 'Коты;Пылесос')
+        self.assertEqual(PromptStore(self.path).get(), 'Коты;Пылесос')
+
     def test_empty_prompt_disables_hint(self):
         self.call({'initial_prompt': ''})
         self.assertEqual(self.call()['initial_prompt'], '')
