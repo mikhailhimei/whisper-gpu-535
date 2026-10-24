@@ -1,0 +1,36 @@
+services:
+  whisper:
+    container_name: whisper
+    build: .  # Указывает на Dockerfile в этой же папке
+    restart: unless-stopped
+    ports:
+      - "10300:10300"
+      - "10301:10301"
+    volumes:
+      - ./data:/data
+    environment:
+      - TZ=Europe/Moscow
+      - WHISPER_PROMPT_TOKEN=${WHISPER_PROMPT_TOKEN:-}
+    command:
+      - --model
+      - deepdml/faster-whisper-large-v3-turbo-ct2 
+      - --language
+      - ru
+      - --device
+      - cuda
+      - --compute-type
+      - int8
+      - --beam-size
+      - "5"
+      - --vad-filter
+      - --vad-threshold
+      - "0.9"               # Высокий порог, чтобы игнорировать тихий ТВ
+
+
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
